@@ -53,6 +53,33 @@
             height: 54px;
         }
 
+        section[id] {
+            scroll-margin-top: 80px;
+        }
+
+        .mobile-menu {
+            border-top: 1px solid #E2E8F0;
+            background: #fff;
+            padding: 0.5rem 1rem 1rem;
+        }
+
+        .mobile-menu button {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 0.875rem;
+            border-radius: 0.5rem;
+            color: #334155;
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .mobile-menu button:hover,
+        .mobile-menu button:focus-visible {
+            color: #1E3A8A;
+            background: #F1F5F9;
+            outline: none;
+        }
+
         @media (min-width: 640px) {
             .site-logo {
                 width: 96px;
@@ -3297,7 +3324,7 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone h-4 w-4" aria-hidden="true">
                                     <path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path>
                                 </svg> कॉल करें</a>
-                            <button data-testid="menu-open" aria-label="मेन्यू खोलें" class="lg:hidden inline-flex h-11 w-11 items-center justify-center rounded-lg border border-[#E2E8F0] text-[#1E3A8A]">
+                            <button type="button" data-testid="menu-open" aria-label="मेन्यू खोलें" aria-controls="mobile-menu" aria-expanded="false" class="lg:hidden inline-flex h-11 w-11 items-center justify-center rounded-lg border border-[#E2E8F0] text-[#1E3A8A]">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu h-6 w-6" aria-hidden="true">
                                     <path d="M4 12h16"></path>
                                     <path d="M4 18h16"></path>
@@ -3307,6 +3334,13 @@
                         </div>
                     </div>
                 </div>
+                <nav id="mobile-menu" class="mobile-menu lg:hidden" aria-label="मोबाइल नेविगेशन" hidden>
+                    <button type="button" data-nav-target="home">होम</button>
+                    <button type="button" data-nav-target="products">हमारे उत्पाद</button>
+                    <button type="button" data-nav-target="brands">ब्रांड</button>
+                    <button type="button" data-nav-target="about">हमारे बारे में</button>
+                    <button type="button" data-nav-target="contact">संपर्क करें</button>
+                </nav>
             </header>
             <main>
                 <section id="home" data-testid="hero-section" class="bg-[#1E3A8A] text-white">
@@ -3900,6 +3934,65 @@
 
 
     <script>
+        (function () {
+            const menuButton = document.querySelector('[data-testid="menu-open"]');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const logoButton = document.querySelector('[data-testid="logo-button"]');
+            const navTargets = {
+                'nav-home': 'home',
+                'nav-products': 'products',
+                'nav-brands': 'brands',
+                'nav-about': 'about',
+                'nav-contact': 'contact'
+            };
+
+            function closeMenu() {
+                if (!menuButton || !mobileMenu) return;
+                mobileMenu.hidden = true;
+                menuButton.setAttribute('aria-expanded', 'false');
+                menuButton.setAttribute('aria-label', 'मेन्यू खोलें');
+            }
+
+            function goToSection(sectionId) {
+                const section = document.getElementById(sectionId);
+                if (!section) return;
+                closeMenu();
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            if (menuButton && mobileMenu) {
+                menuButton.addEventListener('click', function () {
+                    const opening = mobileMenu.hidden;
+                    mobileMenu.hidden = !opening;
+                    menuButton.setAttribute('aria-expanded', String(opening));
+                    menuButton.setAttribute('aria-label', opening ? 'मेन्यू बंद करें' : 'मेन्यू खोलें');
+                });
+
+                mobileMenu.addEventListener('click', function (event) {
+                    const item = event.target.closest('[data-nav-target]');
+                    if (item) goToSection(item.dataset.navTarget);
+                });
+
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape' && !mobileMenu.hidden) {
+                        closeMenu();
+                        menuButton.focus();
+                    }
+                });
+
+                window.addEventListener('resize', function () {
+                    if (window.innerWidth >= 1024) closeMenu();
+                });
+            }
+
+            if (logoButton) logoButton.addEventListener('click', function () { goToSection('home'); });
+
+            Object.keys(navTargets).forEach(function (testId) {
+                const button = document.querySelector('[data-testid="' + testId + '"]');
+                if (button) button.addEventListener('click', function () { goToSection(navTargets[testId]); });
+            });
+        }());
+
         (function () {
             const form = document.querySelector('[data-testid="enquiry-form"]');
             if (!form) return;
